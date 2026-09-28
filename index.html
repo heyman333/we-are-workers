@@ -91,7 +91,8 @@ h1 em{font-style:normal;color:var(--secondary100)}
 .card a{display:inline-block;font-size:12px;font-weight:500;color:var(--contents150);text-decoration:none;transition:color var(--ease)}
 .card a:hover{color:var(--secondary100)}
 .empty{padding:40px 20px;text-align:center;color:var(--contents150)}
-.disclaimer{margin:0;padding:16px 20px 28px;font-size:12px;line-height:1.5;color:var(--contents150)}
+.disclaimer{flex:none;margin:0;padding:8px 20px;font-size:12px;line-height:1.4;color:var(--contents100);background:var(--bg-secondary100);box-shadow:inset 0 -1px 0 var(--divider-lite)}
+.disclaimer b{color:var(--secondary100);font-weight:600}
 #map{width:100%;height:100%}
 /* 마커: 분류 색 점, 선택 시 오렌지 글로우 */
 .dot{width:14px;height:14px;border-radius:50%;background:var(--c);border:2px solid #fff;box-shadow:var(--shadow-1),0 0 0 1px rgba(0,0,0,.15);cursor:pointer;transition:transform var(--ease),box-shadow var(--ease)}
@@ -105,15 +106,15 @@ h1 em{font-style:normal;color:var(--secondary100)}
   #map{position:fixed;inset:0 0 auto;height:50dvh}
   aside{position:fixed;left:0;right:0;top:72px;height:calc(100dvh - 72px);z-index:2;border:0;border-radius:12px 12px 0 0;overflow:hidden;box-shadow:0 0 16px rgba(0,0,0,.2);transform:translateY(calc(50dvh - 72px));transition:transform .32s cubic-bezier(.2,.8,.2,1);will-change:transform}
   aside.dragging{transition:none}
-  header,#areas,.nearbar,#cats,.toolbar{touch-action:pan-x}
+  header,#areas,.nearbar,#cats,.toolbar,.disclaimer{touch-action:pan-x}
   aside:not(.full) .list{overflow:hidden;touch-action:none}
   header{padding:8px 16px 12px}
   header:before{content:"";display:block;width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.35);margin:0 auto 10px}
   .chips{padding-left:16px;padding-right:16px}
-  .toolbar,.card,.nearbar{padding-left:16px;padding-right:16px}
+  .toolbar,.card,.nearbar,.disclaimer{padding-left:16px;padding-right:16px}
 }
 </style>
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=3ca042fe47c06082441e1fc40514f431"></script>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=3ca042fe47c06082441e1fc40514f431&libraries=clusterer"></script>
 </head><body>
 <div class="app">
   <aside>
@@ -123,6 +124,7 @@ h1 em{font-style:normal;color:var(--secondary100)}
       <button class="linkbtn" type="button" id="meOff">해제</button></div>
     <nav class="chips" id="cats" aria-label="분류"></nav>
     <div class="toolbar"><span id="count"></span><nav id="sorts" aria-label="정렬"></nav></div>
+    <p class="disclaimer" role="note"><b>ⓘ</b> 가격·메뉴는 등록 정보 기준이라 실제 매장과 다를 수 있어요</p>
     <div class="list" id="list"></div>
   </aside>
   <div id="map"></div>
@@ -1048,14 +1050,13 @@ const places = [
     return {name, id, cat: '커피', min, menu, area, lat, lng}; }),
 ];
 const CAT = {'한식':'--c-han','한식뷔페':'--c-buffet','칼국수·국수':'--c-noodle','일식':'--c-jp','쌀국수·분식':'--c-etc','중식':'--c-chinese','커피':'--c-coffee'};
-const AREAS = ['강남','판교','강북','광화문·시청','마포','여의도','구디','가산','서울대입구','상암','마곡','문정','성수','잠실','역삼','선릉·삼성','용산'];
+const AREAS = ['강남','판교','분당','강북','광화문·시청','마포','여의도','구디','가산','서울대입구','상암','마곡','문정','성수','잠실','역삼','선릉·삼성','용산'];
 const color = c => `var(${CAT[c]})`;
 const won = n => n.toLocaleString() + '원';
 const priceText = p => p.min == null ? '가격 미등록' : p.cat === '커피' ? (p.menu.includes('이하') ? `≤${won(p.min)}` : won(p.min)) : `${won(p.min)}~`;
-const DISCLAIMER = '<p class="disclaimer">가격·메뉴는 지도 서비스와 식신에 등록된 정보를 모은 것이라 실제 매장 가격과 다를 수 있어요. 방문 전 매장에서 확인해 주세요.</p>';
 const esc = s => String(s).replace(/[&<>"']/g, ch => `&#${ch.charCodeAt(0)};`);
 // 네이버 지도는 장소 ID가 없어 검색으로 연결. 동명 지점이 섞이지 않게 지역을 붙임('명동칼국수 (을지로)' → '명동칼국수 을지로')
-const AREA_HINT = {'강남': '강남역', '판교': '판교', '강북': '종로', '광화문·시청': '광화문', '마포': '마포', '여의도': '여의도', '구디': '구로디지털단지', '가산': '가산디지털단지', '서울대입구': '서울대입구', '상암': '상암', '마곡': '마곡', '문정': '문정', '성수': '성수', '잠실': '잠실', '역삼': '역삼역', '선릉·삼성': '선릉', '용산': '용산'};
+const AREA_HINT = {'강남': '강남역', '판교': '판교', '분당': '분당', '강북': '종로', '광화문·시청': '광화문', '마포': '마포', '여의도': '여의도', '구디': '구로디지털단지', '가산': '가산디지털단지', '서울대입구': '서울대입구', '상암': '상암', '마곡': '마곡', '문정': '문정', '성수': '성수', '잠실': '잠실', '역삼': '역삼역', '선릉·삼성': '선릉', '용산': '용산'};
 const searchQ = p => { const m = p.name.match(/^(.*?)\s*\((.+)\)$/); return m ? `${m[1]} ${m[2]}` : `${p.name} ${AREA_HINT[p.area]}`; };
 const naverUrl = p => `https://map.naver.com/p/search/${encodeURIComponent(searchQ(p))}`;
 // 'S' + 식신 pid 는 식신에서 모은 곳 — 카카오 장소 ID가 없어 카카오맵은 검색으로 연결
@@ -1064,6 +1065,11 @@ const kakaoUrl = p => fromSiksin(p) ? `https://map.kakao.com/link/search/${encod
 
 const map = new kakao.maps.Map(document.getElementById('map'), {center: new kakao.maps.LatLng(37.4979, 127.0276), level: 4});
 map.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.RIGHT);
+// 클러스터링: 레벨 5 이상(넓게 볼 때)만 묶고, 누르면 그 묶음으로 확대. 개수에 따라 원 크기만 달라짐
+const clusterStyle = n => ({width: n + 'px', height: n + 'px', lineHeight: n - 4 + 'px', borderRadius: '50%', textAlign: 'center',
+  background: 'rgba(0,0,0,.85)', color: '#fff', border: '2px solid #FF6A0D', font: '600 13px Pretendard,sans-serif', boxShadow: '0 2px 6px rgba(0,0,0,.25)'});
+const clusterer = new kakao.maps.MarkerClusterer({map, averageCenter: true, minLevel: 5, gridSize: 64,
+  calculator: [10, 50], styles: [clusterStyle(34), clusterStyle(42), clusterStyle(52)]});
 const label = new kakao.maps.CustomOverlay({yAnchor: 1, zIndex: 3});
 const state = {area: '강남', cat: null, sort: 'price', selected: null, me: null, near: false, radius: 1000};
 // 두 좌표 사이 거리(m) — 하버사인
@@ -1145,7 +1151,7 @@ function render(refit) {
   const shown = inArea.filter(p => isCat(p, state.cat))
     .sort(state.sort === 'dist' && near ? (a, b) => a.dist - b.dist
         : (a, b) => (a.min ?? 1e9) - (b.min ?? 1e9) || a.name.localeCompare(b.name, 'ko'));
-  places.forEach(p => p.overlay.setMap(shown.includes(p) ? map : null));
+  clusterer.clear(); clusterer.addMarkers(shown.map(p => p.overlay));
   label.setMap(null);
   for (const [id, k] of [['areas', 'area'], ['cats', 'cat'], ['sorts', 'sort'], ['radius', 'radius']])
     document.querySelectorAll(`#${id} button`).forEach(b => b.setAttribute('aria-pressed', !(near && k === 'area') && (b.dataset.v || null) == state[k]));
@@ -1168,7 +1174,7 @@ function render(refit) {
     <p class="menu">${esc(p.menu)}</p>
     <div class="links"><a href="${kakaoUrl(p)}" target="_blank" rel="noopener">카카오맵에서 보기 ↗</a>
       <a href="${naverUrl(p)}" target="_blank" rel="noopener">네이버맵에서 보기 ↗</a>${fromSiksin(p) ? `
-      <a href="https://www.siksinhot.com/P/${p.id.slice(1)}" target="_blank" rel="noopener">식신에서 보기 ↗</a>` : ''}</div></article>`).join('') + (shown.length ? DISCLAIMER : '') || `<p class="empty">${near ? `반경 ${state.radius >= 1000 ? state.radius / 1000 + 'km' : state.radius + 'm'} 안에 모아둔 곳이 없어요.<br>지금은 ${AREAS.join('·')} 주변만 들어 있어요.` : '조건에 맞는 곳이 없어요'}</p>`;
+      <a href="https://www.siksinhot.com/P/${p.id.slice(1)}" target="_blank" rel="noopener">식신에서 보기 ↗</a>` : ''}</div></article>`).join('') || `<p class="empty">${near ? `반경 ${state.radius >= 1000 ? state.radius / 1000 + 'km' : state.radius + 'm'} 안에 모아둔 곳이 없어요.<br>지금은 ${AREAS.join('·')} 주변만 들어 있어요.` : '조건에 맞는 곳이 없어요'}</p>`;
   if (refit && near) map.setBounds(meCircle.getBounds(), 40, 40, 40, 40);
   else if (refit && shown.length) {
     const b = new kakao.maps.LatLngBounds(); shown.forEach(p => b.extend(p.pos));
