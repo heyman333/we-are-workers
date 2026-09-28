@@ -1066,7 +1066,7 @@ const kakaoUrl = p => fromSiksin(p) ? `https://map.kakao.com/link/search/${encod
 const map = new kakao.maps.Map(document.getElementById('map'), {center: new kakao.maps.LatLng(37.4979, 127.0276), level: 4});
 map.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.RIGHT);
 // 클러스터링: 레벨 5 이상(넓게 볼 때)만 묶고, 누르면 그 묶음으로 확대. 개수에 따라 원 크기만 달라짐
-const clusterStyle = n => ({width: n + 'px', height: n + 'px', lineHeight: n + 'px', borderRadius: '50%', textAlign: 'center',
+const clusterStyle = n => ({width: n + 'px', height: n + 'px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1', borderRadius: '50%',
   boxSizing: 'border-box', background: '#111', color: '#fff', fontFamily: 'Pretendard,sans-serif', fontSize: '13px', fontWeight: '600',
   border: '2px solid #fff', boxShadow: '0 0 0 3px rgba(255,106,13,.45), 0 2px 6px rgba(0,0,0,.25)'});   // font 축약은 line-height를 덮으니 쓰지 않음
 const clusterer = new kakao.maps.MarkerClusterer({map, averageCenter: true, minLevel: 5, gridSize: 64,
