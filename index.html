@@ -48,9 +48,17 @@ h1 em{font-style:normal;color:var(--secondary100)}
 .me-btn.ghost{border-color:transparent;color:rgba(255,255,255,.75);padding:0 8px}
 .me-btn.ghost:hover{color:var(--fixed-white);border-color:rgba(255,255,255,.45)}
 /* 제보 안내 */
-dialog.report{width:min(360px,calc(100vw - 32px));padding:24px 20px 20px;border:0;border-radius:12px;background:var(--bg100);color:var(--contents000);box-shadow:var(--shadow-2)}
+dialog.report{width:min(400px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow-y:auto;padding:24px 20px 20px;border:0;border-radius:12px;background:var(--bg100);color:var(--contents000);box-shadow:var(--shadow-2)}
 dialog.report::backdrop{background:rgba(0,0,0,.45)}
-.report h2{margin:0 0 8px;font-size:17px;font-weight:600}
+.report h2{margin:0 0 12px;font-size:18px;font-weight:700}
+.report h3{margin:20px 0 6px;padding-top:16px;border-top:1px solid var(--divider-lite);font-size:15px;font-weight:600}
+.criteria{display:grid;grid-template-columns:auto 1fr;gap:10px 12px;margin:0 0 12px;font-size:14px;line-height:1.5}
+.criteria dt{display:flex;align-items:center;gap:6px;font-weight:600;white-space:nowrap}
+.criteria dt i{width:8px;height:8px;border-radius:50%}
+.criteria dd{margin:0;color:var(--contents100)}
+.criteria b{color:var(--contents000)}
+.criteria dd span[id^=cnt]{color:var(--contents150);font-size:12px}
+.report p.fine{margin:0;font-size:12px;color:var(--contents150)}
 .report p{margin:0 0 16px;font-size:14px;line-height:1.5;color:var(--contents100)}
 .report .mail{display:block;margin-bottom:16px;padding:12px;border-radius:var(--r-md);background:var(--bg300);font-size:15px;font-weight:600;text-align:center;user-select:all}
 .report .btns{display:flex;gap:8px}
@@ -129,15 +137,22 @@ dialog.report::backdrop{background:rgba(0,0,0,.45)}
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=3ca042fe47c06082441e1fc40514f431&libraries=clusterer"></script>
 </head><body>
 <dialog class="report" id="report" aria-labelledby="reportTitle">
-  <h2 id="reportTitle">오류 제보 · 지역 추가 요청</h2>
+  <h2 id="reportTitle">이런 곳을 모았어요</h2>
+  <dl class="criteria">
+    <dt><i style="background:var(--c-han)"></i>점심</dt><dd>대표 메뉴 중 <b>1만 원 이하</b>가 있는 식당 — 한식·한식뷔페·국수·일식·중식·분식 <span id="cntLunch"></span></dd>
+    <dt><i style="background:var(--c-coffee)"></i>카페</dt><dd>아메리카노 <b>2천 원 이하</b> 브랜드 매장 — <span id="brands"></span> <span id="cntCafe"></span></dd>
+    <dt><i style="background:var(--secondary100)"></i>지역</dt><dd>직장인이 많은 동네 — <span id="areaList"></span></dd>
+  </dl>
+  <p class="fine">가격·메뉴는 지도 서비스와 식신에 등록된 정보를 모은 것이라 실제 매장과 다를 수 있어요.</p>
+  <h3>오류 제보 · 지역 추가 요청</h3>
   <p>가격이 바뀌었거나 문을 닫은 곳, 추가됐으면 하는 동네가 있다면 메일로 알려주세요.</p>
   <span class="mail">gglife333@gmail.com</span>
-  <div class="btns"><button type="button" id="reportCopy">주소 복사</button><a class="primary" href="mailto:gglife333@gmail.com?subject=%5Bweareworkers%5D%20%EC%A0%9C%EB%B3%B4">메일 쓰기</a></div>
-  <div class="btns" style="margin-top:8px"><button type="button" id="reportClose">닫기</button></div>
+  <div class="btns"><button type="button" id="reportCopy">주소 복사</button><a href="mailto:gglife333@gmail.com?subject=%5Bweareworkers%5D%20%EC%A0%9C%EB%B3%B4">메일 쓰기</a></div>
+  <div class="btns" style="margin-top:8px"><button type="button" class="primary" id="reportClose">둘러보기</button></div>
 </dialog>
 <div class="app">
   <aside>
-    <header><div class="head"><h1><span class="logo"><img src="logo.png" alt="" width="30" height="30"></span><span>we<em>are</em>workers</span></h1><div class="head-btns"><button id="reportBtn" class="me-btn ghost" type="button">제보</button><button id="meBtn" class="me-btn">내 위치 주변</button></div></div></header>
+    <header><div class="head"><h1><span class="logo"><img src="logo.png" alt="" width="30" height="30"></span><span>we<em>are</em>workers</span></h1><div class="head-btns"><button id="reportBtn" class="me-btn ghost" type="button">안내</button><button id="meBtn" class="me-btn">내 위치 주변</button></div></div></header>
     <nav class="chips" id="areas" aria-label="지역"></nav>
     <div class="nearbar" id="nearbar" hidden><strong>내 위치</strong><span>반경</span><span id="radius"></span>
       <button class="linkbtn" type="button" id="meOff">해제</button></div>
@@ -1201,8 +1216,13 @@ function render(refit) {
     map.setBounds(b, 60, 60, 60, 60);
   }
 }
-// 제보 안내 — 네이티브 dialog, 바깥 누르면 닫힘
+// 안내(수집 기준 + 제보) — 네이티브 dialog, 첫 방문에 한 번 자동으로 열고 바깥 누르면 닫힘
 const report = document.getElementById('report');
+document.getElementById('cntLunch').textContent = `(${places.filter(p => p.cat !== '커피').length}곳)`;
+document.getElementById('cntCafe').textContent = `(${places.filter(p => p.cat === '커피').length}곳)`;
+document.getElementById('brands').textContent = Object.keys(BRAND).join('·');
+document.getElementById('areaList').textContent = AREAS.join(', ');
+try { if (!localStorage.getItem('ww-intro')) { report.showModal(); localStorage.setItem('ww-intro', '1'); } } catch {}
 document.getElementById('reportBtn').onclick = () => report.showModal();
 document.getElementById('reportClose').onclick = () => report.close();
 report.onclick = e => { const r = report.getBoundingClientRect();   // 패딩 클릭은 무시, 바깥(backdrop)만 닫기
